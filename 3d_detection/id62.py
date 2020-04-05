@@ -14,6 +14,8 @@ import xlsxwriter
 from openpyxl import Workbook #pip install openpyxl
 from openpyxl import load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 
 
@@ -93,6 +95,20 @@ cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
 font = cv2.FONT_HERSHEY_PLAIN
+
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/spreadsheets",
+         "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
+
+creds = ServiceAccountCredentials.from_json_keyfile_name("coords-83f772b5da97.json", scope)
+
+client = gspread.authorize(creds)
+
+sheet = client.open("coords").sheet1
+
+data = sheet.get_all_records()
+
+GOAL_ANGLE = sheet.acell('F13').value
+
 while(cam.isOpened()):
     # Capturing each frame of our video stream
     ret, frame = cam.read()
@@ -140,14 +156,22 @@ while(cam.isOpened()):
                 str_position = "MARKER Position x=%4.0f  y=%4.0f  z=%4.0f"%(tvec[0], tvec[1], tvec[2])
                 cv2.putText(frame, str_position, (0, 100), font, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
-                write_ws = write_wb.create_sheet('id62',0)
-                write_ws['A1'] = 'x'
-                write_ws['B1'] = 'y'
-                write_ws['C1'] = 'z'
+                #write_ws = write_wb.create_sheet('id62',0)
+                #write_ws['A1'] = 'x'
+                #write_ws['B1'] = 'y'
+                #write_ws['C1'] = 'z'
 
-                write_ws.append([tvec[0], tvec[1], tvec[2]])
-                write_wb.save('c:\ss\s\data\id62.xlsx')
-                                    
+                #write_ws.append([tvec[0], tvec[1], tvec[2]])
+                #write_wb.save('c:\ss\s\data\id40.xlsx')
+                
+                # Write to google sheet
+                for i in range(0,3):
+                    sheet.update_cell(3,i+9,tvec[i])   
+
+                #angle = sheet.acell('C17').value          
+
+                #if abs(angle - GOAL_ANGLE) < 0.5:
+                 #   print('Success!!')                       
             
         cv2.imshow('frame', frame)
 
