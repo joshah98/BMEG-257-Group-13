@@ -14,3 +14,5 @@ Steps:
 3)Print and attach to the device 
 
 4)Start recording data
+
+img of aruco markers are in folder "markerimages"
